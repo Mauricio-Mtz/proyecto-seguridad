@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Principal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-gray-800 text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Pantalla de inicio</h2>
+            <div class="flex items-center space-x-4">
+                <a href="/logout">
+                    <button
+                        class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Cerrar sesión
+                    </button>
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Bienvenido a la plataforma</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6" id="userInfo">
+            <div class="flex justify-center items-center p-4">
+                <svg class="animate-spin h-8 w-8 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="ml-2 text-gray-600">Cargando información del usuario...</span>
+            </div>
+        </div>
+        
+        <div id="content" class="bg-white rounded-lg shadow-md p-6">
+            <p class="text-gray-600 text-center">Contenido específico según el rol del usuario.</p>
+        </div>
+    </div>
+
+    <script>
+        // Obtener información del usuario al cargar la página
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/user/info');
+                if (!response.ok) {
+                    throw new Error('Error al obtener información del usuario');
+                }
+                
+                const userData = await response.json();
+                const userInfoElement = document.getElementById('userInfo');
+                const contentElement = document.getElementById('content');
+                
+                // Mostrar información del usuario
+                userInfoElement.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium text-gray-700">Usuario:</p>
+                            <p class="text-gray-800 text-lg">${userData.username}</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-medium text-gray-700">Rol:</p>
+                            <p class="text-gray-800 text-lg">${userData.role}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Contenido específico según el rol
+                if (userData.role === 'admin') {
+                    contentElement.innerHTML = `
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Panel de Administrador</h2>
+                        <p class="text-gray-600 mb-4">Como administrador, tienes acceso a todas las funciones del sistema.</p>
+                        <a href="/admin" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-300">Acceder al panel de administración</a>
+                    `;
+                } else if (userData.role === 'usuario') {
+                    contentElement.innerHTML = `
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Panel de Usuario</h2>
+                        <p class="text-gray-600">Como usuario regular, puedes acceder a las funciones básicas del sistema.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                                <h3 class="font-medium text-gray-700 mb-2">Gestión de perfil</h3>
+                                <p class="text-gray-600 text-sm">Actualiza tu información personal y preferencias</p>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                                <h3 class="font-medium text-gray-700 mb-2">Mis documentos</h3>
+                                <p class="text-gray-600 text-sm">Accede a tus archivos y documentos</p>
+                            </div>
+                        </div>
+                    `;
+                } else if (userData.role === 'invitado') {
+                    contentElement.innerHTML = `
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Acceso de Invitado</h2>
+                        <p class="text-gray-600 mb-4">Como invitado, tu acceso al sistema es limitado.</p>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mt-4">
+                            <p class="flex items-center">
+                                <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Para solicitar acceso completo, contacte al administrador del sistema.
+                            </p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('userInfo').innerHTML = `
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+                        <p class="font-medium">Error al cargar la información del usuario.</p>
+                        <p class="text-sm">Por favor, intente recargar la página o contacte con soporte.</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

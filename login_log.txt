@@ -1,0 +1,15 @@
+2025-03-15T07:15:44.922Z - Intento de inicio de sesión: EXITOSO - Usuario: usuario - Rol: usuario
+2025-03-15T07:16:03.798Z - BLOQUEO DE CUENTA - Usuario: usuario - Ha excedido el número máximo de intentos. Cuenta bloqueada por 5 minutos.
+2025-03-21T21:08:42.789Z - Intento de inicio de sesión: EXITOSO - Usuario: Mauricio - Rol: usuario
+2025-03-21T21:11:40.976Z - Intento de inicio de sesión: EXITOSO - Usuario: admin - Rol: admin
+2025-03-21T21:15:05.422Z - Intento de inicio de sesión: EXITOSO - Usuario: Mauricio - Rol: usuario
+2025-03-21T21:19:26.267Z - Intento de inicio de sesión: EXITOSO - Usuario: admin - Rol: admin
+2025-03-21T21:20:09.219Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
+2025-03-21T21:43:58.627Z - Intento de inicio de sesión: EXITOSO - Usuario: mauri - Rol: usuario
+2025-03-21T21:45:55.685Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
+2025-03-21T21:50:46.403Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
+2025-03-21T21:55:04.773Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
+2025-03-21T21:55:18.865Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
+2025-03-21T22:06:52.784Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
+2025-03-22T00:15:05.354Z - Intento de inicio de sesión: EXITOSO - Usuario: admin - Rol: admin
+2025-03-22T00:16:47.581Z - Intento de inicio de sesión: EXITOSO - Usuario: UTEQ - Rol: usuario
