@@ -13,3 +13,9 @@
 2025-03-21T22:06:52.784Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: admin
 2025-03-22T00:15:05.354Z - Intento de inicio de sesión: EXITOSO - Usuario: admin - Rol: admin
 2025-03-22T00:16:47.581Z - Intento de inicio de sesión: EXITOSO - Usuario: UTEQ - Rol: usuario
+2025-03-25T02:50:43.920Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: usuario
+2025-04-01T02:02:28.175Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: usuario
+2025-04-01T02:10:35.980Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: usuario
+2025-04-01T02:11:07.945Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: usuario
+2025-04-01T02:15:37.463Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: usuario
+2025-04-01T02:16:06.501Z - Intento de inicio de sesión: EXITOSO - Usuario: McPeMauri - Rol: usuario

@@ -16,6 +16,7 @@ const app = express();
 // Configuración de middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // AÑADE ESTA LÍNEA AQUÍ
 app.use(cookieParser());
 
 // Configurar rutas

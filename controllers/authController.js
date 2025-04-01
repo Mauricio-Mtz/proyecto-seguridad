@@ -50,29 +50,58 @@ class AutController {
   // Controlador para procesar el registro de usuario
   static async processRegistration(req, res) {
     const { username, email, password, confirmPassword } = req.body
+    console.log(req.body)
+    
+    // Verificar si es una solicitud AJAX o tradicional
+    const isAjaxRequest = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
 
     try {
       // Verificar si las contraseñas coinciden
       if (password !== confirmPassword) {
-        return res.redirect('/register?error=match')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'match',
+            message: 'Las contraseñas no coinciden.'
+          }) : 
+          res.redirect('/register?error=match');
       }
 
       // Validar requisitos de contraseña
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
       if (!passwordRegex.test(password)) {
-        return res.redirect('/register?error=password')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'password',
+            message: 'La contraseña debe tener al menos 8 caracteres con letras y números.'
+          }) : 
+          res.redirect('/register?error=password');
       }
 
       // Verificar si el usuario ya existe
       const existingUser = await User.findUserByUsername(username)
+      console.log(existingUser)
       if (existingUser) {
-        return res.redirect('/register?error=username')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'username',
+            message: 'El nombre de usuario ya está en uso. Por favor, elige otro.'
+          }) : 
+          res.redirect('/register?error=username');
       }
 
       // Verificar si el correo ya está registrado
       const existingEmail = await User.findUserByEmail(email)
       if (existingEmail) {
-        return res.redirect('/register?error=email')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'email',
+            message: 'Este correo electrónico ya está registrado.'
+          }) : 
+          res.redirect('/register?error=email');
       }
 
       // Generar token de verificación
@@ -104,10 +133,23 @@ class AutController {
       console.log(
         `${new Date().toISOString()} - Usuario registrado: ${username}. Esperando verificación.`
       )
-      res.redirect('/register?message=verification')
+      
+      return isAjaxRequest ? 
+        res.status(200).json({
+          success: true,
+          message: 'verification',
+          details: '¡Registro exitoso! Hemos enviado un enlace de verificación a tu correo electrónico.'
+        }) : 
+        res.redirect('/register?message=verification');
     } catch (error) {
       console.error('Error en el registro:', error)
-      res.status(500).send('Error interno del servidor')
+      return isAjaxRequest ? 
+        res.status(500).json({
+          success: false,
+          error: 'server',
+          message: 'Error interno del servidor'
+        }) : 
+        res.status(500).send('Error interno del servidor');
     }
   }
 
@@ -120,11 +162,13 @@ class AutController {
       const user = await User.findUserByVerificationToken(token)
 
       if (!user) {
+        // Mantenemos la redirección en este caso ya que es una operación iniciada desde un correo electrónico
         return res.redirect('/?error=invalid-token')
       }
 
       // Verificar si el token ha expirado
       if (user.verificationExpires < new Date()) {
+        // Mantenemos la redirección en este caso ya que es una operación iniciada desde un correo electrónico
         return res.redirect('/?error=expired-token')
       }
 
@@ -134,6 +178,7 @@ class AutController {
       console.log(
         `${new Date().toISOString()} - Usuario verificado: ${user.username}`
       )
+      // Mantenemos la redirección en este caso ya que es una operación iniciada desde un correo electrónico
       res.redirect('/?message=verified')
     } catch (error) {
       console.error('Error en la verificación:', error)
@@ -146,16 +191,31 @@ class AutController {
     const { username, password } = req.body
     const captchaResponse = req.body['g-recaptcha-response']
 
+    // Verificar si es una solicitud AJAX o tradicional
+    const isAjaxRequest = req.xhr || req.headers.accept.includes('application/json');
+
     try {
       // Verificar CAPTCHA
       if (!captchaResponse) {
-        return res.redirect('/?error=captcha')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'captcha',
+            message: 'Por favor, completa el captcha.'
+          }) : 
+          res.redirect('/?error=captcha');
       }
 
       const isCaptchaValid = await AutController.verifyCaptcha(captchaResponse)
       if (!isCaptchaValid) {
         loginService.logLogin(username, false, null, 'CAPTCHA inválido')
-        return res.redirect('/?error=captcha')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'captcha',
+            message: 'Verificación de CAPTCHA fallida. Por favor, inténtalo de nuevo.'
+          }) : 
+          res.redirect('/?error=captcha');
       }
 
       // Verificar si el usuario existe
@@ -163,21 +223,38 @@ class AutController {
 
       if (!user) {
         loginService.logLogin(username, false)
-        return res.redirect('/?error=1')
+        return isAjaxRequest ? 
+          res.status(401).json({
+            success: false,
+            error: '1',
+            message: 'Nombre de usuario o contraseña incorrectos.'
+          }) : 
+          res.redirect('/?error=1');
       }
 
       // Verificar si el usuario está verificado
       if (!user.verified) {
-        return res.redirect('/?error=not-verified')
+        return isAjaxRequest ? 
+          res.status(401).json({
+            success: false,
+            error: 'not-verified',
+            message: 'Tu cuenta no ha sido verificada. Por favor, revisa tu correo electrónico.'
+          }) : 
+          res.redirect('/?error=not-verified');
       }
 
       // Verificar intentos fallidos
       const failedStatus = JWT.checkFailedAttempts(username)
       if (failedStatus.isLocked) {
         loginService.logBlockedAttempt(username)
-        return res.redirect(
-          `/?error=2&remainingTime=${failedStatus.remainingTime}`
-        )
+        return isAjaxRequest ? 
+          res.status(429).json({
+            success: false,
+            error: '2',
+            message: 'Demasiados intentos fallidos. Por favor, inténtalo más tarde.',
+            remainingTime: failedStatus.remainingTime
+          }) : 
+          res.redirect(`/?error=2&remainingTime=${failedStatus.remainingTime}`);
       }
 
       // Verificar contraseña
@@ -191,12 +268,23 @@ class AutController {
         if (attempts >= 3) {
           const updatedStatus = JWT.checkFailedAttempts(username)
           loginService.logBlockedAttempt(username)
-          return res.redirect(
-            `/?error=2&remainingTime=${updatedStatus.remainingTime}`
-          )
+          return isAjaxRequest ? 
+            res.status(429).json({
+              success: false,
+              error: '2',
+              message: 'Demasiados intentos fallidos. Por favor, inténtalo más tarde.',
+              remainingTime: updatedStatus.remainingTime
+            }) : 
+            res.redirect(`/?error=2&remainingTime=${updatedStatus.remainingTime}`);
         }
 
-        return res.redirect('/?error=1')
+        return isAjaxRequest ? 
+          res.status(401).json({
+            success: false,
+            error: '1',
+            message: 'Nombre de usuario o contraseña incorrectos.'
+          }) : 
+          res.redirect('/?error=1');
       }
 
       // Inicio de sesión exitoso
@@ -211,10 +299,27 @@ class AutController {
       // Establecer cookie y enviar token en respuesta
       res.cookie('token', token, { httpOnly: true, path: '/' })
 
-      return res.redirect('/user/main')
+      return isAjaxRequest ? 
+        res.status(200).json({
+          success: true,
+          message: 'Inicio de sesión exitoso',
+          redirectUrl: '/user/main',
+          user: {
+            username: user.username,
+            role: user.role,
+            email: user.email
+          }
+        }) : 
+        res.redirect('/user/main');
     } catch (error) {
       console.error('Error en el inicio de sesión:', error)
-      res.status(500).send('Error interno del servidor')
+      return isAjaxRequest ? 
+        res.status(500).json({
+          success: false,
+          error: 'server',
+          message: 'Error interno del servidor'
+        }) : 
+        res.status(500).send('Error interno del servidor');
     }
   }
 
@@ -222,22 +327,43 @@ class AutController {
   static async processResetPassword(req, res) {
     const { username, newPassword } = req.body
     const captchaResponse = req.body['g-recaptcha-response']
+    
+    // Verificar si es una solicitud AJAX o tradicional
+    const isAjaxRequest = req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'));
 
     try {
       // Verificar CAPTCHA
       if (!captchaResponse) {
-        return res.redirect('/reset-password?error=captcha')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'captcha',
+            message: 'Por favor, completa el captcha.'
+          }) : 
+          res.redirect('/reset-password?error=captcha');
       }
 
       const isCaptchaValid = await AutController.verifyCaptcha(captchaResponse)
       if (!isCaptchaValid) {
-        return res.redirect('/reset-password?error=captcha')
+        return isAjaxRequest ? 
+          res.status(400).json({
+            success: false,
+            error: 'captcha',
+            message: 'Verificación de CAPTCHA fallida. Por favor, inténtalo de nuevo.'
+          }) : 
+          res.redirect('/reset-password?error=captcha');
       }
 
       const user = await User.findUserByUsername(username)
 
       if (!user) {
-        return res.redirect('/reset-password?error=1')
+        return isAjaxRequest ? 
+          res.status(404).json({
+            success: false,
+            error: '1',
+            message: 'Usuario no encontrado.'
+          }) : 
+          res.redirect('/reset-password?error=1');
       }
 
       // Actualizar contraseña
@@ -249,17 +375,43 @@ class AutController {
       console.log(
         `${new Date().toISOString()} - Contraseña restablecida para el usuario: ${username}`
       )
-      res.redirect('/?message=password-reset')
+      
+      return isAjaxRequest ? 
+        res.status(200).json({
+          success: true,
+          message: 'password-reset',
+          details: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.'
+        }) : 
+        res.redirect('/?message=password-reset');
     } catch (error) {
       console.error('Error al restablecer la contraseña:', error)
-      res.status(500).send('Error interno del servidor')
+      return isAjaxRequest ? 
+        res.status(500).json({
+          success: false,
+          error: 'server',
+          message: 'Error interno del servidor'
+        }) : 
+        res.status(500).send('Error interno del servidor');
     }
   }
 
   // Controlador para cerrar sesión
-  static logout(req, res) {
+  static async logout(req, res) {
     res.clearCookie('token')
-    res.redirect('/')
+    
+    // Verificar si la solicitud espera JSON o HTML (basado en encabezados)
+    const acceptsJson = req.headers.accept && req.headers.accept.includes('application/json');
+    
+    if (acceptsJson || req.xhr) {
+      return res.status(200).json({
+        success: true,
+        message: 'Sesión cerrada correctamente',
+        redirectUrl: '/'
+      });
+    } else {
+      // Para peticiones tradicionales, mantener la redirección
+      return res.redirect('/');
+    }
   }
 }
 
